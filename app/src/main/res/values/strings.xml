@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FitBlock</string>
+    <string name="accessibility_service_description">FitBlock needs this permission to detect when blocked apps are opened and show the exercise screen instead.</string>
+</resources>
