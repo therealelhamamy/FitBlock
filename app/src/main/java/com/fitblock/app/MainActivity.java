@@ -1,4 +1,5 @@
 package com.fitblock.app;
+import android.content.SharedPreferences;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
