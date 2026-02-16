@@ -1,11 +1,12 @@
 package com.fitblock.app;
-import android.content.SharedPreferences;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -24,6 +25,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,77 +51,52 @@ public class MainActivity extends AppCompatActivity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    runOnUiThread(() -> {
-                        String[] resources = request.getResources();
-                        for (String resource : resources) {
-                            if (resource.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
-                                if (ContextCompat.checkSelfPermission(MainActivity.this,
-                                        Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                                    request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
-                                } else {
-                                    ActivityCompat.requestPermissions(MainActivity.this,
-                                            new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-                                }
-                                return;
-                            }
-                        }
-                    });
+                    runOnUiThread(() -> request.grant(request.getResources()));
                 }
             }
         });
 
         webView.setWebViewClient(new WebViewClient());
         webView.addJavascriptInterface(new WebAppInterface(this), "Android");
-        webView.loadUrl("file:///android_asset/fitblock.html");
-
-        checkPermissions();
-    }
-
-    private void checkPermissions() {
+        
+        // Request camera permission immediately
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
         }
+        
+        webView.loadUrl("file:///android_asset/fitblock.html");
+        checkPermissions();
+    }
 
+    private void checkPermissions() {
         if (!hasUsageStatsPermission()) {
             new AlertDialog.Builder(this)
                     .setTitle("Permission Needed")
-                    .setMessage("FitBlock needs Usage Access to detect when blocked apps open.")
-                    .setPositiveButton("Grant", (dialog, which) -> {
-                        startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
-                    })
-                    .setNegativeButton("Later", null)
+                    .setMessage("Grant Usage Access to detect apps")
+                    .setPositiveButton("Grant", (dialog, which) -> 
+                        startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)))
                     .show();
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Permission Needed")
-                    .setMessage("FitBlock needs permission to display over other apps.")
-                    .setPositiveButton("Grant", (dialog, which) -> {
-                        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                Uri.parse("package:" + getPackageName()));
-                        startActivity(intent);
-                    })
-                    .setNegativeButton("Later", null)
-                    .show();
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
         }
 
         if (!isAccessibilityServiceEnabled()) {
             new AlertDialog.Builder(this)
                     .setTitle("Enable Accessibility")
-                    .setMessage("Enable FitBlock in Accessibility settings to block apps.")
-                    .setPositiveButton("Open Settings", (dialog, which) -> {
-                        startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                    })
-                    .setNegativeButton("Later", null)
+                    .setMessage("Required to block apps")
+                    .setPositiveButton("Settings", (dialog, which) ->
+                        startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)))
                     .show();
         }
     }
@@ -146,34 +127,32 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                webView.reload();
-            } else {
-                Toast.makeText(this, "Camera permission needed for exercise tracking",
-                        Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
     public class WebAppInterface {
         Context context;
 
         WebAppInterface(Context c) {
             context = c;
+        }
+
+        @JavascriptInterface
+        public String getInstalledApps() {
+            try {
+                PackageManager pm = context.getPackageManager();
+                List<ApplicationInfo> apps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+                JSONArray jsonArray = new JSONArray();
+                
+                for (ApplicationInfo app : apps) {
+                    if (pm.getLaunchIntentForPackage(app.packageName) != null) {
+                        JSONObject jsonApp = new JSONObject();
+                        jsonApp.put("name", pm.getApplicationLabel(app).toString());
+                        jsonApp.put("package", app.packageName);
+                        jsonArray.put(jsonApp);
+                    }
+                }
+                return jsonArray.toString();
+            } catch (Exception e) {
+                return "[]";
+            }
         }
 
         @JavascriptInterface
@@ -186,21 +165,6 @@ public class MainActivity extends AppCompatActivity {
         public void setState(String jsonState) {
             SharedPreferences prefs = context.getSharedPreferences("fitblock_state", MODE_PRIVATE);
             prefs.edit().putString("fitblock_state", jsonState).apply();
-        }
-
-        @JavascriptInterface
-        public void startMonitoring() {
-            Intent intent = new Intent(context, MonitoringService.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent);
-            } else {
-                context.startService(intent);
-            }
-        }
-
-        @JavascriptInterface
-        public void stopMonitoring() {
-            context.stopService(new Intent(context, MonitoringService.class));
         }
     }
 }

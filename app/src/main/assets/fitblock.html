@@ -1,12 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitBlock - Earn Your Screen Time</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+    <title>FitBlock</title>
     <style>
         * {
             margin: 0;
@@ -14,286 +11,107 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --fire: #FF3B30;
-            --electric: #00D4FF;
-            --dark: #0A0E27;
-            --darker: #05070F;
-            --light: #F5F5F7;
-            --success: #34C759;
-            --warning: #FF9500;
-        }
-
         body {
-            font-family: 'Work Sans', sans-serif;
-            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
-            color: var(--light);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Background Animation */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 20% 50%, rgba(255, 59, 48, 0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
-            animation: bgPulse 20s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        @keyframes bgPulse {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-5%, -5%) scale(1.1); }
+            font-family: -apple-system, sans-serif;
+            background: #0A0E27;
+            color: #fff;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 80px;
         }
 
         .container {
-            position: relative;
-            z-index: 1;
             max-width: 500px;
             margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
+            padding: 15px;
+            overflow-y: auto;
         }
 
-        /* Header */
         .header {
             text-align: center;
-            padding: 30px 0;
-            position: relative;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            background: #0A0E27;
+            z-index: 10;
         }
 
         .logo {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 48px;
-            letter-spacing: 3px;
-            background: linear-gradient(135deg, var(--fire), var(--electric));
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FF3B30, #00D4FF);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 5px;
-            animation: glow 3s ease-in-out infinite;
         }
 
-        @keyframes glow {
-            0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 59, 48, 0.3)); }
-            50% { filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5)); }
-        }
-
-        .tagline {
-            font-size: 14px;
-            color: rgba(245, 245, 247, 0.6);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-weight: 500;
-        }
-
-        /* Time Bank Display */
         .time-bank {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 25px;
-            margin: 20px 0;
+            background: rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 15px 0;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .time-bank::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent 0deg, var(--electric) 90deg, transparent 180deg);
-            opacity: 0.1;
-            animation: rotate 8s linear infinite;
-        }
-
-        @keyframes rotate {
-            to { transform: rotate(360deg); }
-        }
-
-        .time-bank-content {
-            position: relative;
-            z-index: 1;
         }
 
         .time-display {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 72px;
-            line-height: 1;
-            background: linear-gradient(135deg, var(--success), var(--electric));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 5px;
+            font-size: 48px;
+            font-weight: 900;
+            color: #00D4FF;
         }
 
-        .time-label {
-            font-size: 12px;
-            color: rgba(245, 245, 247, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 600;
-        }
-
-        /* Screen */
         .screen {
             display: none;
-            animation: fadeIn 0.3s ease;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
         }
 
         .screen.active {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Button Styles */
         .btn {
             width: 100%;
-            padding: 18px;
+            padding: 16px;
             border: none;
-            border-radius: 15px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 15px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Work Sans', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn:active::before {
-            width: 300px;
-            height: 300px;
+            margin: 10px 0;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--fire), #FF6B30);
+            background: linear-gradient(135deg, #FF3B30, #FF6B30);
             color: white;
-            box-shadow: 0 10px 30px rgba(255, 59, 48, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(255, 59, 48, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, var(--success), #30D158);
+            background: #34C759;
             color: white;
-            box-shadow: 0 10px 30px rgba(52, 199, 89, 0.3);
-        }
-
-        /* App List */
-        .app-list {
-            margin: 30px 0;
-        }
-
-        .section-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 24px;
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            color: var(--electric);
         }
 
         .app-item {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 15px 20px;
-            margin-bottom: 10px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 10px 0;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .app-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(5px);
+            align-items: center;
         }
 
         .app-item.blocked {
-            border-color: var(--fire);
-            background: rgba(255, 59, 48, 0.1);
-        }
-
-        .app-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .app-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-        }
-
-        .app-name {
-            font-weight: 600;
-            font-size: 16px;
+            border: 2px solid #FF3B30;
         }
 
         .toggle {
-            width: 50px;
+            width: 48px;
             height: 28px;
-            background: rgba(255, 255, 255, 0.1);
+            background: #555;
             border-radius: 14px;
             position: relative;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .toggle.active {
-            background: var(--fire);
+            background: #FF3B30;
         }
 
         .toggle::after {
@@ -303,380 +121,69 @@
             height: 22px;
             border-radius: 50%;
             background: white;
-            top: 2px;
-            left: 2px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            top: 3px;
+            left: 3px;
+            transition: 0.3s;
         }
 
         .toggle.active::after {
-            left: 24px;
+            left: 23px;
         }
 
-        /* Block Screen */
-        .block-message {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .block-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .block-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 36px;
-            letter-spacing: 2px;
-            color: var(--fire);
-            margin-bottom: 10px;
-        }
-
-        .block-text {
-            font-size: 16px;
-            color: rgba(245, 245, 247, 0.7);
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-
-        /* Exercise Selection */
-        .exercise-grid {
-            display: grid;
-            gap: 15px;
-            margin: 30px 0;
-        }
-
-        .exercise-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .exercise-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--fire), var(--electric));
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .exercise-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .exercise-card:hover {
-            border-color: var(--electric);
-            background: rgba(255, 255, 255, 0.08);
-            transform: scale(1.02);
-        }
-
-        .exercise-emoji {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .exercise-name {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 28px;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-        }
-
-        .exercise-reward {
-            color: var(--success);
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        /* Camera View */
         .camera-container {
             position: relative;
             width: 100%;
-            margin: 20px 0;
-            border-radius: 20px;
+            border-radius: 16px;
             overflow: hidden;
-            background: var(--darker);
+            background: #000;
+            display: none;
+        }
+
+        .camera-container.active {
+            display: block;
         }
 
         #video {
             width: 100%;
-            display: block;
             transform: scaleX(-1);
-        }
-
-        #canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transform: scaleX(-1);
-        }
-
-        .camera-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, transparent 50%, rgba(0, 0, 0, 0.3) 100%);
-            pointer-events: none;
         }
 
         .rep-counter {
             position: absolute;
-            top: 20px;
+            top: 15px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 15px 40px;
-            border-radius: 50px;
-            border: 2px solid var(--electric);
+            background: rgba(0,0,0,0.8);
+            padding: 12px 30px;
+            border-radius: 25px;
+            border: 2px solid #00D4FF;
         }
 
         .rep-count {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 48px;
-            color: var(--electric);
-            line-height: 1;
-        }
-
-        .rep-label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-align: center;
-        }
-
-        .form-feedback {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 200px;
-            text-align: center;
-        }
-
-        .form-feedback.good {
-            border: 2px solid var(--success);
-            color: var(--success);
-        }
-
-        .form-feedback.bad {
-            border: 2px solid var(--warning);
-            color: var(--warning);
-        }
-
-        .exercise-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .exercise-controls .btn {
-            flex: 1;
-        }
-
-        /* Stats */
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-family: 'Bebas Neue', sans-serif;
             font-size: 36px;
-            color: var(--electric);
-            margin-bottom: 5px;
+            font-weight: 900;
+            color: #00D4FF;
         }
 
-        .stat-label {
-            font-size: 12px;
-            color: rgba(245, 245, 247, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Bottom Nav */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(10, 14, 39, 0.95);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px 20px;
+            background: rgba(10,14,39,0.98);
+            padding: 12px;
             display: flex;
             justify-content: space-around;
             z-index: 100;
         }
 
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            text-align: center;
             padding: 5px 15px;
-            border-radius: 10px;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.05);
         }
 
         .nav-item.active {
-            color: var(--electric);
-        }
-
-        .nav-icon {
-            font-size: 24px;
-        }
-
-        .nav-label {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Loading State */
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--electric);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Custom App Input */
-        .custom-app-input {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .input-field {
-            flex: 1;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: var(--light);
-            font-family: 'Work Sans', sans-serif;
-            font-size: 14px;
-        }
-
-        .input-field::placeholder {
-            color: rgba(245, 245, 247, 0.4);
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: var(--electric);
-        }
-
-        .btn-icon {
-            padding: 15px 20px;
-            font-size: 20px;
-        }
-
-        /* Success Animation */
-        .success-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .success-content {
-            text-align: center;
-            animation: scaleIn 0.5s ease;
-        }
-
-        @keyframes scaleIn {
-            from { transform: scale(0.5); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .success-icon {
-            font-size: 100px;
-            margin-bottom: 20px;
-        }
-
-        .success-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 48px;
-            color: var(--success);
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-        }
-
-        .success-text {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .logo { font-size: 36px; }
-            .time-display { font-size: 56px; }
-            .block-title { font-size: 28px; }
+            color: #00D4FF;
         }
     </style>
 </head>
@@ -684,627 +191,238 @@
     <div class="container">
         <div class="header">
             <div class="logo">FITBLOCK</div>
-            <div class="tagline">Earn Your Screen Time</div>
         </div>
 
         <div class="time-bank">
-            <div class="time-bank-content">
-                <div class="time-display" id="timeDisplay">0</div>
-                <div class="time-label">Minutes Available</div>
-            </div>
+            <div class="time-display" id="timeDisplay">0</div>
+            <div>Minutes Available</div>
         </div>
 
         <!-- Home Screen -->
         <div id="homeScreen" class="screen active">
-            <div class="app-list">
-                <div class="section-title">Select Apps to Block</div>
-                <div class="custom-app-input">
-                    <input type="text" class="input-field" id="customAppInput" placeholder="Add custom app...">
-                    <button class="btn btn-primary btn-icon" onclick="addCustomApp()">+</button>
-                </div>
-                <div id="appListContainer"></div>
-            </div>
-            <button class="btn btn-primary" onclick="testBlockScreen()">Test Block Screen</button>
-        </div>
-
-        <!-- Block Screen -->
-        <div id="blockScreen" class="screen">
-            <div class="block-message">
-                <div class="block-icon">🚫</div>
-                <div class="block-title">App Blocked</div>
-                <div class="block-text">
-                    <span id="blockedAppName">This app</span> is locked.<br>
-                    Complete an exercise to earn access time!
-                </div>
-            </div>
-
-            <div class="exercise-grid">
-                <div class="exercise-card" onclick="startExercise('pushups')">
-                    <div class="exercise-emoji">💪</div>
-                    <div class="exercise-name">Push-ups</div>
-                    <div class="exercise-reward">1 rep = 1 minute</div>
-                </div>
-                <div class="exercise-card" onclick="startExercise('squats')">
-                    <div class="exercise-emoji">🦵</div>
-                    <div class="exercise-name">Squats</div>
-                    <div class="exercise-reward">1 rep = 1 minute</div>
-                </div>
-                <div class="exercise-card" onclick="startExercise('curls')">
-                    <div class="exercise-emoji">🏋️</div>
-                    <div class="exercise-name">Curls</div>
-                    <div class="exercise-reward">1 rep = 1 minute</div>
-                </div>
-            </div>
-
-            <button class="btn btn-secondary" onclick="showScreen('homeScreen')">Back to Settings</button>
+            <button class="btn btn-primary" onclick="pickApp()">+ Add Apps to Block</button>
+            <div id="appList"></div>
         </div>
 
         <!-- Exercise Screen -->
         <div id="exerciseScreen" class="screen">
-            <div class="section-title" id="exerciseTitle">Push-ups</div>
-            
-            <div class="camera-container" id="cameraContainer" style="display: none;">
+            <h2 id="exerciseTitle">Exercise</h2>
+            <div class="camera-container" id="cameraContainer">
                 <video id="video" autoplay playsinline></video>
-                <canvas id="canvas"></canvas>
-                <div class="camera-overlay"></div>
                 <div class="rep-counter">
                     <div class="rep-count" id="repCount">0</div>
-                    <div class="rep-label">REPS</div>
-                </div>
-                <div class="form-feedback good" id="formFeedback" style="display: none;">
-                    Good Form! 💪
                 </div>
             </div>
-
-            <div class="loading" id="cameraLoading">
-                <div class="spinner"></div>
-                <div>Initializing camera and AI...</div>
-            </div>
-
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="earnedMinutes">0</div>
-                    <div class="stat-label">Minutes Earned</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="caloriesBurned">0</div>
-                    <div class="stat-label">Calories</div>
-                </div>
-            </div>
-
-            <div class="exercise-controls">
-                <button class="btn btn-secondary" onclick="stopExercise()">Stop</button>
-                <button class="btn btn-success" onclick="completeExercise()">Finish & Collect</button>
-            </div>
-        </div>
-
-        <!-- Stats Screen -->
-        <div id="statsScreen" class="screen">
-            <div class="section-title">Your Progress</div>
-            
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalReps">0</div>
-                    <div class="stat-label">Total Reps</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalMinutes">0</div>
-                    <div class="stat-label">Total Minutes</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="workoutCount">0</div>
-                    <div class="stat-label">Workouts</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="streakDays">0</div>
-                    <div class="stat-label">Day Streak</div>
-                </div>
-            </div>
-
-            <button class="btn btn-secondary" onclick="resetStats()" style="margin-top: 20px;">Reset All Stats</button>
+            <button class="btn btn-success" onclick="completeExercise()">Finish (+<span id="earnedMins">0</span> min)</button>
+            <button class="btn" style="background:#555" onclick="stopExercise()">Cancel</button>
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showScreen('homeScreen')">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-label">Home</div>
+            🏠<br><small>Home</small>
         </div>
-        <div class="nav-item" onclick="showScreen('blockScreen')">
-            <div class="nav-icon">🚫</div>
-            <div class="nav-label">Block</div>
-        </div>
-        <div class="nav-item" onclick="showScreen('statsScreen')">
-            <div class="nav-icon">📊</div>
-            <div class="nav-label">Stats</div>
+        <div class="nav-item" onclick="startExercise()">
+            💪<br><small>Exercise</small>
         </div>
     </div>
 
     <script>
-        // App State
-        let appState = {
+        let state = {
             availableMinutes: 0,
             blockedApps: [],
-            currentExercise: null,
-            currentReps: 0,
-            currentMinutes: 0,
-            stats: {
-                totalReps: 0,
-                totalMinutes: 0,
-                workoutCount: 0,
-                streakDays: 0
-            }
+            currentReps: 0
         };
 
-        // Default apps
-        const defaultApps = [
-            { name: 'TikTok', icon: '🎵', id: 'tiktok' },
-            { name: 'Instagram', icon: '📷', id: 'instagram' },
-            { name: 'YouTube', icon: '▶️', id: 'youtube' },
-            { name: 'Twitter', icon: '🐦', id: 'twitter' },
-            { name: 'Facebook', icon: '👤', id: 'facebook' },
-            { name: 'Snapchat', icon: '👻', id: 'snapchat' },
-            { name: 'Reddit', icon: '🤖', id: 'reddit' },
-            { name: 'Netflix', icon: '🎬', id: 'netflix' }
-        ];
-
-        // Pose Detection Variables
-        let detector;
-        let video;
-        let canvas;
-        let ctx;
-        let animationId;
-        let lastPosition = 'up';
-        let repCounted = false;
-
-        // Load state from localStorage
-        function loadState() {
-            const saved = localStorage.getItem('fitblock_state');
-            if (saved) {
-                appState = JSON.parse(saved);
-                updateTimeDisplay();
-                updateStats();
-            }
-        }
-
-        // Save state to localStorage
-        function saveState() {
-            localStorage.setItem('fitblock_state', JSON.stringify(appState));
-        }
+        let video, canvas, ctx;
+        let lastBrightness = 0;
+        let motionCount = 0;
+        let repState = 'up';
+        let cameraReady = false;
 
         // Initialize
         function init() {
             loadState();
             renderAppList();
-            updateTimeDisplay();
-            updateStats();
+            updateDisplay();
+            initCamera(); // Start camera immediately in background
         }
 
-        // Render app list
-        function renderAppList() {
-            const container = document.getElementById('appListContainer');
-            const apps = [...defaultApps, ...appState.blockedApps.filter(app => !defaultApps.find(d => d.id === app.id))];
-            
-            container.innerHTML = apps.map(app => `
-                <div class="app-item ${isAppBlocked(app.id) ? 'blocked' : ''}" onclick="toggleApp('${app.id}')">
-                    <div class="app-info">
-                        <div class="app-icon">${app.icon}</div>
-                        <div class="app-name">${app.name}</div>
-                    </div>
-                    <div class="toggle ${isAppBlocked(app.id) ? 'active' : ''}"></div>
-                </div>
-            `).join('');
-        }
-
-        // Toggle app blocked state
-        function toggleApp(appId) {
-            const app = defaultApps.find(a => a.id === appId) || appState.blockedApps.find(a => a.id === appId);
-            if (!app) return;
-
-            const index = appState.blockedApps.findIndex(a => a.id === appId);
-            if (index > -1) {
-                appState.blockedApps.splice(index, 1);
-            } else {
-                appState.blockedApps.push(app);
-            }
-            
-            saveState();
-            renderAppList();
-        }
-
-        // Check if app is blocked
-        function isAppBlocked(appId) {
-            return appState.blockedApps.some(app => app.id === appId);
-        }
-
-        // Add custom app
-        function addCustomApp() {
-            const input = document.getElementById('customAppInput');
-            const name = input.value.trim();
-            if (!name) return;
-
-            const id = name.toLowerCase().replace(/\s+/g, '-');
-            const app = { name, icon: '📱', id };
-            
-            appState.blockedApps.push(app);
-            saveState();
-            renderAppList();
-            input.value = '';
-        }
-
-        // Update time display
-        function updateTimeDisplay() {
-            document.getElementById('timeDisplay').textContent = appState.availableMinutes;
-        }
-
-        // Update stats display
-        function updateStats() {
-            document.getElementById('totalReps').textContent = appState.stats.totalReps;
-            document.getElementById('totalMinutes').textContent = appState.stats.totalMinutes;
-            document.getElementById('workoutCount').textContent = appState.stats.workoutCount;
-            document.getElementById('streakDays').textContent = appState.stats.streakDays;
-        }
-
-        // Show screen
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach((item, index) => {
-                item.classList.remove('active');
-            });
-            
-            if (screenId === 'homeScreen') document.querySelectorAll('.nav-item')[0].classList.add('active');
-            if (screenId === 'blockScreen') document.querySelectorAll('.nav-item')[1].classList.add('active');
-            if (screenId === 'statsScreen') document.querySelectorAll('.nav-item')[2].classList.add('active');
-        }
-
-        // Test block screen
-        function testBlockScreen() {
-            const blockedApp = appState.blockedApps[0] || { name: 'TikTok' };
-            document.getElementById('blockedAppName').textContent = blockedApp.name;
-            showScreen('blockScreen');
-        }
-
-        // Start exercise
-        async function startExercise(type) {
-            appState.currentExercise = type;
-            appState.currentReps = 0;
-            appState.currentMinutes = 0;
-            
-            const titles = {
-                'pushups': '💪 Push-ups',
-                'squats': '🦵 Squats',
-                'curls': '🏋️ Dumbbell Curls'
-            };
-            
-            document.getElementById('exerciseTitle').textContent = titles[type];
-            document.getElementById('repCount').textContent = '0';
-            document.getElementById('earnedMinutes').textContent = '0';
-            document.getElementById('caloriesBurned').textContent = '0';
-            
-            showScreen('exerciseScreen');
-            
-            await initCamera();
-        }
-
-        // Initialize camera and pose detection
+        // Initialize camera in background
         async function initCamera() {
             try {
                 video = document.getElementById('video');
-                canvas = document.getElementById('canvas');
+                canvas = document.createElement('canvas');
                 ctx = canvas.getContext('2d');
-
-                // Get video stream
+                canvas.width = 160;
+                canvas.height = 120;
+                
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user', width: 640, height: 480 }
                 });
                 video.srcObject = stream;
-
-                await video.play();
-
-                // Set canvas size
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-
-                // Load pose detection model
-                detector = await poseDetection.createDetector(
-                    poseDetection.SupportedModels.MoveNet,
-                    { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
-                );
-
-                document.getElementById('cameraLoading').style.display = 'none';
-                document.getElementById('cameraContainer').style.display = 'block';
-
-                detectPose();
-            } catch (error) {
-                console.error('Camera error:', error);
-                alert('Could not access camera. Please allow camera permissions.');
+                cameraReady = true;
+                console.log('Camera ready!');
+            } catch (e) {
+                console.log('Camera not available');
             }
         }
 
-        // Detect pose and count reps
-        async function detectPose() {
-            if (!detector || !video) return;
-
-            try {
-                const poses = await detector.estimatePoses(video);
+        // Pick app from phone
+        async function pickApp() {
+            if (typeof Android !== 'undefined' && Android.getInstalledApps) {
+                const appsJson = Android.getInstalledApps();
+                const apps = JSON.parse(appsJson);
                 
-                // Clear canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                if (poses.length > 0) {
-                    const pose = poses[0];
-                    drawKeypoints(pose.keypoints);
-                    drawSkeleton(pose.keypoints);
-                    countReps(pose.keypoints);
-                }
-
-                animationId = requestAnimationFrame(detectPose);
-            } catch (error) {
-                console.error('Pose detection error:', error);
-            }
-        }
-
-        // Draw keypoints
-        function drawKeypoints(keypoints) {
-            keypoints.forEach(keypoint => {
-                if (keypoint.score > 0.3) {
-                    ctx.beginPath();
-                    ctx.arc(keypoint.x, keypoint.y, 5, 0, 2 * Math.PI);
-                    ctx.fillStyle = '#00D4FF';
-                    ctx.fill();
-                }
-            });
-        }
-
-        // Draw skeleton
-        function drawSkeleton(keypoints) {
-            const adjacentPairs = [
-                [5, 7], [7, 9], [6, 8], [8, 10], // Arms
-                [5, 6], [5, 11], [6, 12], [11, 12], // Torso
-                [11, 13], [13, 15], [12, 14], [14, 16] // Legs
-            ];
-
-            adjacentPairs.forEach(([i, j]) => {
-                const kp1 = keypoints[i];
-                const kp2 = keypoints[j];
+                // Simple selection (you can make this fancier)
+                const appName = prompt("Enter app name from list:\n\n" + 
+                    apps.slice(0, 20).map(a => a.name).join('\n'));
                 
-                if (kp1.score > 0.3 && kp2.score > 0.3) {
-                    ctx.beginPath();
-                    ctx.moveTo(kp1.x, kp1.y);
-                    ctx.lineTo(kp2.x, kp2.y);
-                    ctx.strokeStyle = '#FF3B30';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-                }
-            });
-        }
-
-        // Count reps based on exercise type
-        function countReps(keypoints) {
-            if (!appState.currentExercise) return;
-
-            const feedback = document.getElementById('formFeedback');
-
-            if (appState.currentExercise === 'pushups') {
-                // Detect push-ups using shoulder and hip height
-                const leftShoulder = keypoints[5];
-                const rightShoulder = keypoints[6];
-                const leftHip = keypoints[11];
-                const rightHip = keypoints[12];
-
-                if (leftShoulder.score > 0.3 && rightShoulder.score > 0.3 && 
-                    leftHip.score > 0.3 && rightHip.score > 0.3) {
-                    
-                    const shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
-                    const hipY = (leftHip.y + rightHip.y) / 2;
-                    const bodyAngle = Math.abs(shoulderY - hipY);
-
-                    // Down position
-                    if (bodyAngle < 80 && lastPosition === 'up' && !repCounted) {
-                        lastPosition = 'down';
-                        feedback.style.display = 'block';
-                        feedback.textContent = 'Go lower! 💪';
-                        feedback.className = 'form-feedback bad';
-                    }
-                    // Up position (rep complete)
-                    else if (bodyAngle > 100 && lastPosition === 'down' && !repCounted) {
-                        lastPosition = 'up';
-                        repCounted = true;
-                        incrementRep();
-                        feedback.textContent = 'Good rep! 🔥';
-                        feedback.className = 'form-feedback good';
-                        setTimeout(() => {
-                            repCounted = false;
-                            feedback.style.display = 'none';
-                        }, 1000);
-                    }
-                }
-            } else if (appState.currentExercise === 'squats') {
-                // Detect squats using hip and knee position
-                const leftHip = keypoints[11];
-                const leftKnee = keypoints[13];
-                const rightHip = keypoints[12];
-                const rightKnee = keypoints[14];
-
-                if (leftHip.score > 0.3 && leftKnee.score > 0.3 && 
-                    rightHip.score > 0.3 && rightKnee.score > 0.3) {
-                    
-                    const leftLegAngle = Math.abs(leftHip.y - leftKnee.y);
-                    const rightLegAngle = Math.abs(rightHip.y - rightKnee.y);
-                    const avgLegAngle = (leftLegAngle + rightLegAngle) / 2;
-
-                    // Down position
-                    if (avgLegAngle < 100 && lastPosition === 'up' && !repCounted) {
-                        lastPosition = 'down';
-                        feedback.style.display = 'block';
-                        feedback.textContent = 'Keep going! 🦵';
-                        feedback.className = 'form-feedback bad';
-                    }
-                    // Up position (rep complete)
-                    else if (avgLegAngle > 140 && lastPosition === 'down' && !repCounted) {
-                        lastPosition = 'up';
-                        repCounted = true;
-                        incrementRep();
-                        feedback.textContent = 'Perfect squat! 🔥';
-                        feedback.className = 'form-feedback good';
-                        setTimeout(() => {
-                            repCounted = false;
-                            feedback.style.display = 'none';
-                        }, 1000);
-                    }
-                }
-            } else if (appState.currentExercise === 'curls') {
-                // Detect curls using elbow angle
-                const leftShoulder = keypoints[5];
-                const leftElbow = keypoints[7];
-                const leftWrist = keypoints[9];
-                const rightShoulder = keypoints[6];
-                const rightElbow = keypoints[8];
-                const rightWrist = keypoints[10];
-
-                if (leftShoulder.score > 0.3 && leftElbow.score > 0.3 && leftWrist.score > 0.3) {
-                    const angle = calculateAngle(leftShoulder, leftElbow, leftWrist);
-
-                    // Down position
-                    if (angle > 160 && lastPosition === 'up' && !repCounted) {
-                        lastPosition = 'down';
-                    }
-                    // Up position (rep complete)
-                    else if (angle < 50 && lastPosition === 'down' && !repCounted) {
-                        lastPosition = 'up';
-                        repCounted = true;
-                        incrementRep();
-                        feedback.style.display = 'block';
-                        feedback.textContent = 'Nice curl! 💪';
-                        feedback.className = 'form-feedback good';
-                        setTimeout(() => {
-                            repCounted = false;
-                            feedback.style.display = 'none';
-                        }, 1000);
+                if (appName) {
+                    const app = apps.find(a => a.name.toLowerCase().includes(appName.toLowerCase()));
+                    if (app && !state.blockedApps.find(a => a.package === app.package)) {
+                        state.blockedApps.push(app);
+                        saveState();
+                        renderAppList();
                     }
                 }
             }
         }
 
-        // Calculate angle between three points
-        function calculateAngle(a, b, c) {
-            const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
-            let angle = Math.abs(radians * 180.0 / Math.PI);
-            if (angle > 180.0) {
-                angle = 360 - angle;
-            }
-            return angle;
+        // Render app list
+        function renderAppList() {
+            const list = document.getElementById('appList');
+            list.innerHTML = state.blockedApps.map((app, i) => `
+                <div class="app-item blocked" onclick="toggleApp(${i})">
+                    <span>${app.name}</span>
+                    <div class="toggle active"></div>
+                </div>
+            `).join('');
         }
 
-        // Increment rep counter
+        // Toggle app
+        function toggleApp(index) {
+            if (confirm('Remove ' + state.blockedApps[index].name + '?')) {
+                state.blockedApps.splice(index, 1);
+                saveState();
+                renderAppList();
+            }
+        }
+
+        // Start exercise
+        function startExercise() {
+            state.currentReps = 0;
+            document.getElementById('repCount').textContent = '0';
+            document.getElementById('earnedMins').textContent = '0';
+            showScreen('exerciseScreen');
+            
+            if (cameraReady) {
+                document.getElementById('cameraContainer').classList.add('active');
+                startMotionDetection();
+            }
+        }
+
+        // Better motion detection
+        function startMotionDetection() {
+            setInterval(() => {
+                if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+                
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // Calculate brightness
+                let totalBrightness = 0;
+                for (let i = 0; i < imageData.data.length; i += 4) {
+                    totalBrightness += (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
+                }
+                const avgBrightness = totalBrightness / (imageData.data.length / 4);
+                
+                // Detect motion
+                const diff = Math.abs(avgBrightness - lastBrightness);
+                
+                if (diff > 15) { // Increased threshold
+                    motionCount++;
+                    if (motionCount > 3 && repState === 'up') {
+                        repState = 'down';
+                    }
+                } else if (diff < 5) {
+                    if (motionCount > 3 && repState === 'down') {
+                        incrementRep();
+                        repState = 'up';
+                        motionCount = 0;
+                    }
+                }
+                
+                lastBrightness = avgBrightness;
+            }, 300); // Slower for better accuracy
+        }
+
+        // Increment rep
         function incrementRep() {
-            appState.currentReps++;
-            appState.currentMinutes++;
-            
-            document.getElementById('repCount').textContent = appState.currentReps;
-            document.getElementById('earnedMinutes').textContent = appState.currentMinutes;
-            
-            // Estimate calories (rough estimate)
-            const caloriesPerRep = {
-                'pushups': 0.5,
-                'squats': 0.4,
-                'curls': 0.3
-            };
-            const calories = Math.round(appState.currentReps * caloriesPerRep[appState.currentExercise]);
-            document.getElementById('caloriesBurned').textContent = calories;
-        }
-
-        // Stop exercise
-        function stopExercise() {
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-            }
-            if (video && video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
-            }
-            
-            appState.currentExercise = null;
-            appState.currentReps = 0;
-            appState.currentMinutes = 0;
-            
-            showScreen('blockScreen');
+            state.currentReps++;
+            document.getElementById('repCount').textContent = state.currentReps;
+            document.getElementById('earnedMins').textContent = state.currentReps;
         }
 
         // Complete exercise
         function completeExercise() {
-            if (appState.currentReps === 0) {
-                alert('Complete at least one rep before finishing!');
+            if (state.currentReps === 0) {
+                alert('Do at least 1 rep!');
                 return;
             }
-
-            // Add minutes to bank
-            appState.availableMinutes += appState.currentMinutes;
-            
-            // Update stats
-            appState.stats.totalReps += appState.currentReps;
-            appState.stats.totalMinutes += appState.currentMinutes;
-            appState.stats.workoutCount++;
-            
+            state.availableMinutes += state.currentReps;
             saveState();
-            updateTimeDisplay();
-            updateStats();
-            
-            // Show success animation
-            showSuccessAnimation(appState.currentMinutes);
-            
-            // Stop exercise
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-            }
+            updateDisplay();
+            stopExercise();
+            alert(`+${state.currentReps} minutes earned!`);
+            showScreen('homeScreen');
+        }
+
+        // Stop exercise
+        function stopExercise() {
             if (video && video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject.getTracks().forEach(t => t.stop());
+                video.srcObject = null;
+                cameraReady = false;
+                initCamera(); // Restart camera in background
             }
-            
-            setTimeout(() => {
-                appState.currentExercise = null;
-                appState.currentReps = 0;
-                appState.currentMinutes = 0;
-                showScreen('homeScreen');
-            }, 3000);
+            document.getElementById('cameraContainer').classList.remove('active');
         }
 
-        // Show success animation
-        function showSuccessAnimation(minutes) {
-            const animation = document.createElement('div');
-            animation.className = 'success-animation';
-            animation.innerHTML = `
-                <div class="success-content">
-                    <div class="success-icon">🎉</div>
-                    <div class="success-title">+${minutes} MINUTES</div>
-                    <div class="success-text">Added to your time bank!</div>
-                </div>
-            `;
-            document.body.appendChild(animation);
-            
-            setTimeout(() => {
-                animation.remove();
-            }, 3000);
-        }
-
-        // Reset stats
-        function resetStats() {
-            if (confirm('Are you sure you want to reset all stats?')) {
-                appState.stats = {
-                    totalReps: 0,
-                    totalMinutes: 0,
-                    workoutCount: 0,
-                    streakDays: 0
-                };
-                saveState();
-                updateStats();
+        // Save/load state
+        function saveState() {
+            localStorage.setItem('fitblock_state', JSON.stringify(state));
+            if (typeof Android !== 'undefined' && Android.setState) {
+                Android.setState(JSON.stringify(state));
             }
         }
 
-        // Initialize on load
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('fitblock_state');
+                if (saved) state = {...state, ...JSON.parse(saved)};
+                
+                if (typeof Android !== 'undefined' && Android.getState) {
+                    const androidState = Android.getState();
+                    if (androidState) state = {...state, ...JSON.parse(androidState)};
+                }
+            } catch (e) {}
+        }
+
+        function updateDisplay() {
+            document.getElementById('timeDisplay').textContent = state.availableMinutes;
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (screenId === 'homeScreen') document.querySelectorAll('.nav-item')[0].classList.add('active');
+        }
+
         window.addEventListener('load', init);
+        setInterval(() => { if (typeof Android !== 'undefined') loadState(); }, 2000);
     </script>
 </body>
 </html>
